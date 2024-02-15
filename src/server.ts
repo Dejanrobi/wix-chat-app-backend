@@ -39,6 +39,7 @@ app.use(
       origin(requestOrigin, callback) {
           const whitelist = [
               "http://localhost",
+              "https://wix-chat-app-backend.azurewebsites.net",
               `https://${process.env.WIX_APP_ID}.wix.run`,
           ];
 
