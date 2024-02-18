@@ -66,6 +66,7 @@ app.post("/settings", async function (req, res) {
 });
 
 app.get("/api/v1", (req, res)=>{
+  // console.log(req.body)
   res.json({success:"true", message: "Business Buddy application"})
 })
 
@@ -77,8 +78,11 @@ app.get("/settings", async function (req, res) {
   res.send({ behaviorDirective });
 });
 
-app.post("/chat/product", async function (req, res) {
+app.post("/api/v1/chat/product", async function (req, res) {
   const { instanceId } = authorizeWixRequest(req);
+
+  console.log(instanceId)
+  console.log(req.body)
   const { messages, product } = req.body as {
     messages: Array<{
       author: "Business Buddy" | "User";
@@ -86,40 +90,42 @@ app.post("/chat/product", async function (req, res) {
     }>;
     product: string;
   };
-  const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
 
-  const openai = new OpenAIApi(configuration);
 
-  const completion = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [
-      {
-        role: "system",
-        content: `You are Business Buddy, a chatbot that helps business owners with their businesses. 
-        You are tasked with helping a business owner with one of their products.
-        The business owner will chat with you about their product and you will give them advice on how to improve it.
+  // const configuration = new Configuration({
+  //   apiKey: process.env.OPENAI_API_KEY,
+  // });
 
-        The business owner has given the following directive as to how you should respond to their messages:
-        ${getBehaviorDirective(instanceId)}
+  // const openai = new OpenAIApi(configuration);
 
-        The product is presented below as a JSON object:
-        ${product}`,
-      },
-      ...messages.map((message) => ({
-        role:
-          message.author === "Business Buddy"
-            ? ("assistant" as const)
-            : ("user" as const),
-        content: message.text,
-      })),
-    ],
-    max_tokens: 2000,
-    n: 1,
-  });
+  // const completion = await openai.createChatCompletion({
+  //   model: "gpt-3.5-turbo",
+  //   messages: [
+  //     {
+  //       role: "system",
+  //       content: `You are Business Buddy, a chatbot that helps business owners with their businesses. 
+  //       You are tasked with helping a business owner with one of their products.
+  //       The business owner will chat with you about their product and you will give them advice on how to improve it.
 
-  res.send({ message: completion.data.choices[0].message?.content });
+  //       The business owner has given the following directive as to how you should respond to their messages:
+  //       ${getBehaviorDirective(instanceId)}
+
+  //       The product is presented below as a JSON object:
+  //       ${product}`,
+  //     },
+  //     ...messages.map((message) => ({
+  //       role:
+  //         message.author === "Business Buddy"
+  //           ? ("assistant" as const)
+  //           : ("user" as const),
+  //       content: message.text,
+  //     })),
+  //   ],
+  //   max_tokens: 2000,
+  //   n: 1,
+  // });
+
+  // res.send({ message: completion.data.choices[0].message?.content });
 });
 
 app.listen(PORT, () => {
