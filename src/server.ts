@@ -9,6 +9,8 @@ import {
 } from "./behavior-directives-collection";
 import { authorizeWixRequest } from "./utils";
 
+import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
+
 dotenv.config();
 
 const PORT = process.env.PORT || 4000;
@@ -78,54 +80,88 @@ app.get("/settings", async function (req, res) {
   res.send({ behaviorDirective });
 });
 
-app.post("/api/v1/chat/product", async function (req, res) {
-  const { instanceId } = authorizeWixRequest(req);
+// Tracking the history:
+const history: string[] = [];
 
-  console.log(instanceId)
-  console.log(req.body)
-  const { messages, product } = req.body as {
-    messages: Array<{
-      author: "Business Buddy" | "User";
-      text: string;
-    }>;
-    product: string;
+app.post("/api/v1/chat/product", async function (req, res) {
+  // const { instanceId } = authorizeWixRequest(req);
+
+  // console.log(instanceId)
+  // console.log(req.body)
+
+  const { prompt, product} = req.body
+  // const { messages, product } = req.body as {
+  //   messages: Array<{
+  //     author: "Business Buddy" | "User";
+  //     text: string;
+  //   }>;
+  //   product: string;
+  // };
+
+
+  // configuring google gemini
+  // configuring google generative AI
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY ?? ''; // Using optional chaining and nullish coalescing operator to provide a default value
+  const configuration = new GoogleGenerativeAI(apiKey);
+
+  // Model initialization
+  const generationConfig = {
+    stopSequences: ["red"],
+    maxOutputTokens: 400,
+    temperature: 0.9,
+    topP: 0.1,
+    topK: 16,
   };
 
+  const safetySettings = [
+    {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+    },
+    {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    },
+  ];
 
-  // const configuration = new Configuration({
-  //   apiKey: process.env.OPENAI_API_KEY,
-  // });
+  const modelId = "gemini-pro";
+  const model = configuration.getGenerativeModel({ model: modelId, generationConfig, safetySettings });
 
-  // const openai = new OpenAIApi(configuration);
+  const promptEngine = `You are Business Buddy, a chatbot that helps business owners with their businesses. 
+  You are tasked with helping a business owner with one of their products.
+  The business owner will chat with you about their product and you will give them advice on how to improve it.
 
-  // const completion = await openai.createChatCompletion({
-  //   model: "gpt-3.5-turbo",
-  //   messages: [
-  //     {
-  //       role: "system",
-  //       content: `You are Business Buddy, a chatbot that helps business owners with their businesses. 
-  //       You are tasked with helping a business owner with one of their products.
-  //       The business owner will chat with you about their product and you will give them advice on how to improve it.
+  The product is presented below as a JSON object:
+  ${product}
+  
+  Answer the following question from the business owner:
+  ${prompt}`
 
-  //       The business owner has given the following directive as to how you should respond to their messages:
-  //       ${getBehaviorDirective(instanceId)}
+  // res.send({ response: promptEngine })
 
-  //       The product is presented below as a JSON object:
-  //       ${product}`,
-  //     },
-  //     ...messages.map((message) => ({
-  //       role:
-  //         message.author === "Business Buddy"
-  //           ? ("assistant" as const)
-  //           : ("user" as const),
-  //       content: message.text,
-  //     })),
-  //   ],
-  //   max_tokens: 2000,
-  //   n: 1,
-  // });
 
-  // res.send({ message: completion.data.choices[0].message?.content });
+  try {
+    // const { prompt } = req.body;
+    // console.log(prompt)
+
+    const result = await model.generateContent(promptEngine);
+    const response = await result.response;
+    
+    const text = response.text();
+    // // console.log(text);
+
+    // history.push(text);
+    // // console.log(history);
+
+    res.send({ response: text });
+    // // res.status(200).json({success: true})
+    
+    
+  } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ message: "Internal server error" });
+  }
+ 
 });
 
 app.listen(PORT, () => {
