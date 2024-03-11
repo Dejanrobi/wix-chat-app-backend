@@ -20,7 +20,7 @@ const behavior_directives_collection_1 = require("./behavior-directives-collecti
 const utils_1 = require("./utils");
 const generative_ai_1 = require("@google/generative-ai");
 dotenv_1.default.config();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8000;
 const app = (0, express_1.default)();
 app.use(body_parser_1.default.json());
 app.use((0, cors_1.default)({
