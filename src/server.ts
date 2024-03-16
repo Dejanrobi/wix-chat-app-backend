@@ -43,7 +43,7 @@ app.use(
               "http://localhost",
               "https://wix-chat-app-backend.azurewebsites.net",
               `https://${process.env.WIX_APP_ID}.wix.run`,
-              'https://65aaf00d-422b-43c5-a5ef-45c998e85781.wix.run'
+              'https://65aaf00d-422b-43c5-a5ef-45c998e85781'
           ];
 
           if (
@@ -69,7 +69,9 @@ app.post("/settings", async function (req, res) {
 });
 
 app.get("/api/v1", (req, res)=>{
+  const { instanceId } = authorizeWixRequest(req)
   // console.log(req.body)
+  console.log("Instance Id: ", instanceId);
   res.json({success:"true", message: "Business Buddy application"})
 })
 
@@ -85,9 +87,9 @@ app.get("/settings", async function (req, res) {
 const history: string[] = [];
 
 app.post("/api/v1/chat/product", async function (req, res) {
-  // const { instanceId } = authorizeWixRequest(req);
+  const { instanceId } = authorizeWixRequest(req);
 
-  // console.log(instanceId)
+  // console.log("Instance Id: ",instanceId)
   // console.log(req.body)
 
   const { prompt, product} = req.body

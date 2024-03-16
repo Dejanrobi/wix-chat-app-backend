@@ -29,7 +29,7 @@ app.use((0, cors_1.default)({
             "http://localhost",
             "https://wix-chat-app-backend.azurewebsites.net",
             `https://${process.env.WIX_APP_ID}.wix.run`,
-            'https://65aaf00d-422b-43c5-a5ef-45c998e85781.wix.run'
+            'https://65aaf00d-422b-43c5-a5ef-45c998e85781'
         ];
         if (requestOrigin &&
             whitelist.some((whitelistOrigin) => requestOrigin.includes(whitelistOrigin))) {
@@ -49,6 +49,8 @@ app.post("/settings", function (req, res) {
     });
 });
 app.get("/api/v1", (req, res) => {
+    const { instanceId } = (0, utils_1.authorizeWixRequest)(req);
+    console.log("Instance Id: ", instanceId);
     res.json({ success: "true", message: "Business Buddy application" });
 });
 app.get("/settings", function (req, res) {
@@ -63,6 +65,7 @@ const history = [];
 app.post("/api/v1/chat/product", function (req, res) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
+        const { instanceId } = (0, utils_1.authorizeWixRequest)(req);
         const { prompt, product } = req.body;
         const apiKey = (_a = process.env.GOOGLE_GEMINI_API_KEY) !== null && _a !== void 0 ? _a : '';
         const configuration = new generative_ai_1.GoogleGenerativeAI(apiKey);
