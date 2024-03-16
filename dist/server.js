@@ -29,6 +29,7 @@ app.use((0, cors_1.default)({
             "http://localhost",
             "https://wix-chat-app-backend.azurewebsites.net",
             `https://${process.env.WIX_APP_ID}.wix.run`,
+            'https://65aaf00d-422b-43c5-a5ef-45c998e85781.wix.run'
         ];
         if (requestOrigin &&
             whitelist.some((whitelistOrigin) => requestOrigin.includes(whitelistOrigin))) {
